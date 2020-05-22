@@ -1,8 +1,10 @@
 module Main exposing (main)
 
+import Api
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attribute
+import Http
 import Time
 
 
@@ -11,12 +13,12 @@ import Time
 
 
 type alias Model =
-    Int
+    List Api.Transaction
 
 
 init : () -> ( Model, Cmd Message )
 init =
-    always ( 0, Cmd.none )
+    always ( [], Cmd.none )
 
 
 
@@ -24,19 +26,37 @@ init =
 
 
 type Message
-    = Increment
+    = GotTransactions (List Api.Transaction)
+    | GotError
+    | RequestTransactions
 
 
 update : Message -> Model -> ( Model, Cmd Message )
-update message model =
+update message existing =
     case message of
-        Increment ->
-            ( model + 1, Cmd.none )
+        GotTransactions transactions ->
+            ( transactions, Cmd.none )
+
+        GotError ->
+            ( [], Cmd.none )
+
+        RequestTransactions ->
+            ( existing, Cmd.map resultToMessage Api.request )
+
+
+resultToMessage : Result Http.Error (List Api.Transaction) -> Message
+resultToMessage result =
+    case result of
+        Ok list ->
+            GotTransactions list
+
+        Err _ ->
+            GotError
 
 
 subscriptions : Model -> Sub Message
 subscriptions _ =
-    Time.every (5 * 1000) (always Increment)
+    Time.every (5 * 1000) (always RequestTransactions)
 
 
 
@@ -46,7 +66,7 @@ subscriptions _ =
 view : Model -> Html Message
 view model =
     Html.div [ Attribute.class "container cards" ]
-        (cards model)
+        (cards <| List.length model)
 
 
 cards : Int -> List (Html Message)
