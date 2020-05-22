@@ -5,6 +5,7 @@ import Browser
 import Html exposing (Html)
 import Html.Attributes as Attribute
 import Http
+import Task
 import Time
 
 
@@ -18,7 +19,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Message )
 init =
-    always ( [], Cmd.none )
+    always ( [], Task.succeed RequestTransactions |> Task.perform identity )
 
 
 
@@ -66,22 +67,22 @@ subscriptions _ =
 view : Model -> Html Message
 view model =
     Html.div [ Attribute.class "container cards" ]
-        (cards <| List.length model)
+        (List.map card model)
 
 
-cards : Int -> List (Html Message)
-cards count =
-    List.repeat count <|
-        Html.div [ Attribute.class "card" ]
-            [ Html.div [ Attribute.class "skill-level" ]
-                [ Html.span [] [ Html.text "+" ]
-                , Html.h2 [] [ Html.text <| String.fromInt count ]
-                ]
-            , Html.div [ Attribute.class "skill-meta" ]
-                [ Html.h3 [] [ Html.text "Projects" ]
-                , Html.span [] [ Html.text "Adapting and creating solutions for customer's needs" ]
-                ]
+card : Api.Transaction -> Html Message
+card transaction =
+    Html.div [ Attribute.class "card" ]
+        [ Html.div [ Attribute.class "skill-level" ]
+            [ Html.span [] [ Html.text "we like" ]
+            , Html.h2 [] [ Html.text "Elm" ]
             ]
+        , Html.div [ Attribute.class "skill-meta" ]
+            [ Html.h3 [] [ Html.text transaction.title ]
+            , Html.span []
+                [ Html.text <| "Amount is " ++ String.fromFloat transaction.amount ]
+            ]
+        ]
 
 
 
