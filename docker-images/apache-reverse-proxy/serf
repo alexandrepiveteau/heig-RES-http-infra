@@ -1,0 +1,8 @@
+{
+  "tags": {
+    "role": "load-balancer"
+  },
+  "event_handlers": [
+    "/usr/local/bin/update_topology"
+  ]
+}
