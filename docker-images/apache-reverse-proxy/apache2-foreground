@@ -5,7 +5,10 @@ set -e
 echo "Setup for the RES lab..."
 echo "Static app : $STATIC_APP"
 echo "Dynamic app : $DYNAMIC_APP"
-php /var/apache2/templates/config-template.php > /etc/apache2/sites-available/001-reverse-proxy.conf
+
+# Load an empty configuration by default.
+echo "" | php /var/apache2/templates/config-template-serf.php > /etc/apache2/sites-available/001-reverse-proxy.conf
+# php /var/apache2/templates/config-template.php > /etc/apache2/sites-available/001-reverse-proxy.conf
 
 # Setup dynamic load balancing. We use serf to keep track of the network
 # topology and update our load balancers accordingly. Please note that

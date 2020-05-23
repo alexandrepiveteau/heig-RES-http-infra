@@ -1,0 +1,8 @@
+{
+  "tags": {
+    "role": "load-balancer"
+  },
+  "event_handlers": [
+    "cat | php /var/apache2/templates/config-template-serf.php > /etc/apache2/sites-available/001-reverse-proxy.conf && apache2ctl -k graceful && a2ensite 001-*"
+  ]
+}

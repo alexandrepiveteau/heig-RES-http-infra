@@ -7,8 +7,8 @@ COPY update_topology /usr/local/bin
 
 COPY templates /var/apache2/templates
 
-COPY conf/ /etc/apache2
-COPY serf /etc/serf/config
+COPY conf-apache2/ /etc/apache2
+COPY conf-serf/ /etc/serf
 
-RUN a2enmod proxy proxy_http
+RUN a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests
 RUN a2ensite 000-* 
