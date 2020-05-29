@@ -49,27 +49,38 @@
   $static_ips = array_map("serf_agent_to_ip", $static_members); 
   $dynamic_ips = array_map("serf_agent_to_ip", $dynamic_members);
 ?>
+LogLevel alert rewrite:trace3
+
 <VirtualHost *:80>
   ServerName labo.res.ch
 
   # Round-robin load balancer, with no routing cookie.
-  # <Proxy "balancer://dynamiccluster">
+  <Proxy balancer://cdynamic>
 <?php
 foreach($dynamic_ips as $ip) {
-  #echo "    BalancerMember \"http://";
-  #echo $ip;
-  #echo ":3000\"\n";
-  echo "  ProxyPass '/api/transactions/' 'http://";
+  echo "    BalancerMember http://";
   echo $ip;
-  echo ":3000/'\n";
-  echo "  ProxyPassReverse '/api/transactions/' 'http://";
-  echo $ip;
-  echo ":3000/'\n";
+  echo ":3000\n";
 }
     ?>
-  #</Proxy>
-  #ProxyPass "/api/transactions" "balancer://dynamiccluster"
-  #ProxyPassReverse "/api/transactions" "balancer://dynamiccluster"
+    ProxySet lbmethod=byrequests
+  </Proxy>
+  ProxyPass '/api/transactions' 'balancer://cdynamic'
+  ProxyPassReverse '/api/transactions' 'balancer://cdynamic'
+
+  # ProxyPass configuration for static content.
+  <?php
+$route = 1;
+foreach($static_ips as $ip) {
+  echo "  ProxyPass '/' 'http://";
+  echo $ip;
+  echo ":80/'\n";
+  echo "  ProxyPassReverse '/' 'http://";
+  echo $ip;
+  echo ":80/'\n";
+}
+?>
+
 
   # Sticky load balancer (as long as the topology does not change too often).
   # Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
@@ -83,13 +94,6 @@ foreach($static_ips as $ip) {
   #echo $route;
   #echo "\n";
   #$route = $route + 1;
-
-  echo "  ProxyPass '/' 'http://";
-  echo $ip;
-  echo ":80/'\n";
-  echo "  ProxyPassReverse '/' 'http://";
-  echo $ip;
-  echo ":80/'\n";
 }
 ?>
   #  ProxySet stickysession=ROUTEID

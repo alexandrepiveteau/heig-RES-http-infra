@@ -5,6 +5,7 @@ var chance = new Chance();
 var app = new Express();
 
 app.get('/', function(req, res) {
+  console.log("Received a request !");
   res.send(generateTransactions());
 });
 
