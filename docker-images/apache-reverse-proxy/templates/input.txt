@@ -1,0 +1,7 @@
+macbook-pro-de-alexandre-1.home 192.168.1.110:7946  alive role=dynamic
+macbook-pro-de-alexandre-1.home 192.168.1.111:7946  alive role=static
+macbook-pro-de-alexandre-1.home 192.168.1.113:7946  alive role=static
+macbook-pro-de-alexandre-1.home 192.168.1.115:7946  alive role=static
+macbook-pro-de-alexandre-1.home 192.168.1.112:7946  alive role=dynamic
+macbook-pro-de-alexandre-1.home 192.168.1.114:7946  alive role=dynamic
+macbook-pro-de-alexandre-1.home 192.168.1.119:7946  alive role=unknown

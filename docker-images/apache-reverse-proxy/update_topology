@@ -1,2 +1,6 @@
 #!/bin/bash
-echo "This is just a test, to see if it works" 
+transformed=$(serf members | php /var/apache2/templates/config-template-serf.php)
+
+echo "$transformed" > /etc/apache2/sites-available/001-reverse-proxy.conf
+service apache2 reload
+a2ensite 001-*

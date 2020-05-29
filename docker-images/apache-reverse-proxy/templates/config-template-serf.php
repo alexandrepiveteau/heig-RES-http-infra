@@ -8,15 +8,20 @@
 
   # Maps a serf line to its IP adress.
   function serf_agent_to_ip($line) {
-    return explode("\t", $line)[1];
+    $with_port = preg_split('/\s+/', $line)[1];
+    return substr($with_port, 0, strpos($with_port, ":"));
   }
 
   # Maps a serf line to its role. If no role can be found in this line, we
   # return the "unknown" role instead.
   function serf_agent_to_role($line) {
-    $exploded = explode("\t", $line);
-    if (count($exploded) >= 2) {
-      return $exploded[2];
+    $exploded = preg_split('/\s+/', $line);
+    if (count($exploded) >= 3 && $exploded[2] == "alive") {
+      # Syntax is role=something
+      # We're only interested in the something.
+      $role = substr($exploded[3], strpos($exploded[3], "=") + 1, strlen($exploded[3]));
+      # echo $role;
+      return $role;
     } else {
       return "unknown";
     }
@@ -48,35 +53,48 @@
   ServerName labo.res.ch
 
   # Round-robin load balancer, with no routing cookie.
-  <Proxy "balancer://dynamic-balancer">
-    <?php
-    foreach($dynamic_ips as $ip) {
-      echo "BalancerMember \"http://";
-      echo $ip;
-      echo ":3000\"\n";
-    }
+  # <Proxy "balancer://dynamiccluster">
+<?php
+foreach($dynamic_ips as $ip) {
+  #echo "    BalancerMember \"http://";
+  #echo $ip;
+  #echo ":3000\"\n";
+  echo "  ProxyPass '/api/transactions/' 'http://";
+  echo $ip;
+  echo ":3000/'\n";
+  echo "  ProxyPassReverse '/api/transactions/' 'http://";
+  echo $ip;
+  echo ":3000/'\n";
+}
     ?>
-  </Proxy>
-  ProxyPass "/api/transactions/" "balancer://dynamic-balancer/"
-  ProxyPassReverse "/api/transactions/" "balancer://dynamic-balancer/"
+  #</Proxy>
+  #ProxyPass "/api/transactions" "balancer://dynamiccluster"
+  #ProxyPassReverse "/api/transactions" "balancer://dynamiccluster"
 
   # Sticky load balancer (as long as the topology does not change too often).
-  Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
-  <Proxy "balancer://static-balancer">
-    <?php
-    $route = 0;
-    foreach($static_ips as $ip) {
-      echo "BalancerMember \"http://";
-      echo $ip;
-      echo ":80\" route=";
-      echo $route;
-      echo "\n";
-      $route = $route + 1;
-    }
-    ?>
-    ProxySet stickysession=ROUTEID
-  </Proxy>
-  ProxyPass "/" "balancer://static-balancer/"
-  ProxyPassReverse "/" "balancer://static-balancer/"
+  # Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+  #<Proxy "balancer://staticbalancer">
+<?php
+$route = 1;
+foreach($static_ips as $ip) {
+  #echo "    BalancerMember \"http://";
+  #echo $ip;
+  #echo ":80\" route=";
+  #echo $route;
+  #echo "\n";
+  #$route = $route + 1;
+
+  echo "  ProxyPass '/' 'http://";
+  echo $ip;
+  echo ":80/'\n";
+  echo "  ProxyPassReverse '/' 'http://";
+  echo $ip;
+  echo ":80/'\n";
+}
+?>
+  #  ProxySet stickysession=ROUTEID
+  #</Proxy>
+  #ProxyPass "/" "balancer://staticbalancer"
+  #ProxyPassReverse "/" "balancer://staticbalancer"
 
 </VirtualHost>
