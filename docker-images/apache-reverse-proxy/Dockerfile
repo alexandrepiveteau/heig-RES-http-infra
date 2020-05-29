@@ -10,5 +10,14 @@ COPY templates /var/apache2/templates
 COPY conf-apache2/ /etc/apache2
 COPY conf-serf/ /etc/serf
 
-RUN a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests status rewrite
+# Helper modules.
+RUN a2enmod status rewrite
+
+# Proxy modules.
+RUN a2enmod proxy proxy_http  
+
+# Load balancing modules.
+RUN a2enmod headers proxy_balancer lbmethod_byrequests
+
+# Enable the default site.
 RUN a2ensite 000-* 

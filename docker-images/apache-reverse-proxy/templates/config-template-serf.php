@@ -55,7 +55,7 @@ LogLevel alert rewrite:trace3
   ServerName labo.res.ch
 
   # Round-robin load balancer, with no routing cookie.
-  <Proxy balancer://cdynamic>
+  <Proxy balancer://dynamic-balancer>
 <?php
 foreach($dynamic_ips as $ip) {
   echo "    BalancerMember http://";
@@ -65,40 +65,28 @@ foreach($dynamic_ips as $ip) {
     ?>
     ProxySet lbmethod=byrequests
   </Proxy>
-  ProxyPass '/api/transactions' 'balancer://cdynamic'
-  ProxyPassReverse '/api/transactions' 'balancer://cdynamic'
-
-  # ProxyPass configuration for static content.
-  <?php
-$route = 1;
-foreach($static_ips as $ip) {
-  echo "  ProxyPass '/' 'http://";
-  echo $ip;
-  echo ":80/'\n";
-  echo "  ProxyPassReverse '/' 'http://";
-  echo $ip;
-  echo ":80/'\n";
-}
-?>
-
 
   # Sticky load balancer (as long as the topology does not change too often).
-  # Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
-  #<Proxy "balancer://staticbalancer">
+  Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+  <Proxy balancer://static-balancer>
 <?php
 $route = 1;
 foreach($static_ips as $ip) {
-  #echo "    BalancerMember \"http://";
-  #echo $ip;
-  #echo ":80\" route=";
-  #echo $route;
-  #echo "\n";
-  #$route = $route + 1;
+  echo "    BalancerMember http://";
+  echo $ip;
+  echo ":80 route=";
+  echo $route;
+  echo "\n";
+  $route = $route + 1;
 }
 ?>
-  #  ProxySet stickysession=ROUTEID
-  #</Proxy>
-  #ProxyPass "/" "balancer://staticbalancer"
-  #ProxyPassReverse "/" "balancer://staticbalancer"
+    ProxySet stickysession=ROUTEID
+  </Proxy>
+
+  ProxyPass '/api/transactions' 'balancer://dynamic-balancer'
+  ProxyPassReverse '/api/transactions' 'balancer://dynamic-balancer'
+
+  ProxyPass '/' 'balancer://static-balancer/'
+  ProxyPassReverse '/' 'balancer://static-balancer/'
 
 </VirtualHost>
