@@ -10,11 +10,11 @@ Authors :
 In this lab, we've used a few extra tools, on top of Docker, NPM and an Apache2
 HTTP Server. These additions include :
 
-- [Elm](elm-lang.org), a pure functional programming language. It is replacing
-  client-side Javascript when performing AJAX requests.
-- [Serf](serf.io), a CLI interface to a distributed cluster management tool. We
-  use it as a way to let servers discover each other, and keep track of the
-  current topology.
+- [Elm](https://elm-lang.org), a pure functional programming language. It is
+  replacing client-side Javascript when performing AJAX requests.
+- [Serf](https://serf.io), a CLI interface to a distributed cluster management
+  tool. We use it as a way to let servers discover each other, and keep track
+  of the current topology.
 
 ## Details of our configuration
 
@@ -61,7 +61,7 @@ Before running any of the four last commands, you must have started the named
 
 #### Building our static website
 #### Serving static content
-#### AJAX with [Elm](elm-lang.org)
+#### AJAX with [Elm](https://elm-lang.org)
 
 ### Dynamic HTTP Server
 
@@ -72,4 +72,4 @@ Before running any of the four last commands, you must have started the named
 
 #### Forwarding routes
 #### Detecting topology changes
-#### Dynamic load balancing with [Serf](serf.io)
+#### Dynamic load balancing with [Serf](https://serf.io)
