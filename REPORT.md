@@ -16,7 +16,7 @@ Authors :
     * [Serving static content](#serving-static-content)
     * [AJAX with Elm](#ajax-with-elm)
       * [Integration in HTML content](#integration-in-html-content)
-    * [AJAX in Elm](#ajax-in-elm)
+      * [AJAX in Elm](#ajax-in-elm)
   * [Dynamic HTTP Server](#dynamic-http-server)
     * [Building our Node app](#building-our-node-app)
     * [Serving our Node app](#serving-our-node-app)
@@ -174,7 +174,7 @@ Here are some key takeaways of how Elm works, and useful resources :
 Since our app is very simple, it does not need to interact with Javascript, and
 can perform AJAX requests directly.
 
-#### AJAX in Elm
+##### AJAX in Elm
 
 Our Elm code, present in the `src` folder, contains two files :
 
