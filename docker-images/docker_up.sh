@@ -11,5 +11,5 @@ cd express-image
 ./build.sh
 cd ..
 
-# Run the reverse proxy on port 80.
+# Run the reverse proxy on port local port 8080.
 docker run -p 8080:80 --name res-reverse-proxy res/apache_rp &
