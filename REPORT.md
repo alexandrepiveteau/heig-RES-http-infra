@@ -574,4 +574,54 @@ of the previously used route, and will direct this request to the server with
 a matching `route=` parameter.
 
 #### Detecting topology changes with [Serf](https://serf.io)
+
+Topology of our cluster might change over time, especially if new nodes are
+added, or existing nodes are killed. We use [serf](https://serf.io), a CLI,
+to monitor the state of our cluster.
+
+More specifically, each container that we start has `serf` started in the
+background when it is launched (usually in the `apache2-foreground` or the
+`connect` script) :
+
+```bash
+serf agent -config-file=/etc/serf/config -protocol=4 &
+```
+
+> Notice that we specify the `serf` protocol version. For some obscure reason,
+> the serf protocol version `5` did not work on all the images, so we had to
+> result to a slightly older version. This does not affect functionality at
+> all.
+
+Each container is also given a role that's either :
+
+- `static`, for static website servers.
+- `dynamic`, for dynamic website servers.
+- `load-balancer`, for our central load balancer.
+
+Roles are specified in a `sef-conf/conf` file that's copied in `/etc/serf/`
+in each container. This is the configuration of a static node for instance :
+
+```json
+{
+  "tags": {
+    "role": "static"
+  }
+}
+```
+
+This way, running the `serf members` command from one of the nodes (assuming
+they have been connected to the same cluster) will result in an output similar
+to this :
+
+```text
+1c6982e4b271  172.17.0.3:7946  alive  role=dynamic
+861fdf114a43  172.17.0.4:7946  alive  role=dynamic
+4b8658c05fe0  172.17.0.5:7946  alive  role=static
+6a21f8f5f792  172.17.0.6:7946  alive  role=static
+9a8216c2c041  172.17.0.2:7946  alive  role=load-balancer
+```
+
+This contains the IP addresses and protocol where serf is running, the status
+of the nodes, their roles, and their identifiers.
+
 #### Dynamic load balancing with [Serf](https://serf.io)
