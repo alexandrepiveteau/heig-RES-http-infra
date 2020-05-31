@@ -282,7 +282,68 @@ resulting content will then be dispatched within a `Message`.
 
 ### Dynamic HTTP Server
 
+Out dynamic HTTP server is based on **Node**, and uses **NPM** as its package
+manager. The behavior of the app is relatively simple :
+
+1. A dynamic web server listens for HTTP requests on the **port 3000**.
+2. Whenever a request arrives at the `/` url, a list of transactions is
+   randomly generated, and returned as some JSON-encoded data in the HTTP
+   response.
+
 #### Building our Node app
+
+We use NPM to retrieve the two dependencies of our project. The configuration
+is described in the `src/package.json` file :
+
+- `chance` is a small library that generates "cool" random values for many
+  data types.
+- `express` is a simple web framework for building HTTP servers.
+
+The `package-lock.json` file stores the versions of the libraries, as well as
+some meta-data about their dependencies, and more stuff related to the project.
+
+The configuration in the `Dockerfile` is as follows :
+
+```Dockerfile
+
+FROM node:14
+
+RUN apt-get update && apt-get install -y vim serf
+COPY src/ /opt/app
+WORKDIR /opt/app
+RUN npm install
+```
+
+creates a new image form the base `node` image, installs some utilities,
+copies all of the code content in `/opt/app`, and runs `npm install` to fetch
+all the required dependencies.
+
+Similarly to the static image, serf is configured too :
+
+```Dockerfile
+# Configure serf and startup script.
+COPY conf-serf/ /etc/serf
+COPY connect .
+```
+
+Finally, a `connect` script is run, that performs two operations :
+
+```Dockerfile
+CMD "./connect"
+```
+
+1. Starting the serf agent to monitor topology
+2. Run the node.js app
+
+```bash
+#!/bin/bash
+serf agent -config-file=/etc/serf/config -protocol=4 -join=$EXISTING_NODE &
+node index.js
+```
+
+We must use a dedicated shell script to perform these operations, since we
+can't directly ask Docker to perform multiple `CMD`.
+
 #### Serving our Node app
 
 ### Dynamic Reverse Proxy
