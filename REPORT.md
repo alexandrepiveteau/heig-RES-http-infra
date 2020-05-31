@@ -64,7 +64,7 @@ webcasts. It uses a Docker multi-stage build, to perform the following steps :
 
 1. Installing NPM and our build dependencies.
 
-```docker
+```Dockerfile
 # Build the elm app. We first install the npm modules, to profit from Docker caching.
 FROM node:14 AS build
 WORKDIR /code
@@ -74,7 +74,7 @@ RUN npm install
 ```
 
 2. Compiling our Elm program into an index.js file.
-```docker
+```Dockerfile
 COPY . .
 RUN npm run build
 RUN cp ./index.js /code/static
