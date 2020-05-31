@@ -24,6 +24,8 @@ Authors :
     * [Forwarding routes](#forwarding-routes)
     * [Building the reverse proxy](#building-the-reverse-proxy)
     * [Load balancing with and without sticky sessions](#load-balancing-with-and-without-sticky-sessions)
+      * [Round-robin balancer for a dynamic site](#round-robin-balancer-for-a-dynamic-site)
+      * [Sticky balancer for a static site](#sticky-balancer-for-a-static-site)
     * [Detecting topology changes with Serf](#detecting-topology-changes-with-serf)
     * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
 
@@ -520,6 +522,56 @@ RUN a2ensite 000-*
 ```
 
 #### Load balancing with and without sticky sessions
+
+Load balancing comes in two flavors in our project :
+
+- A **sticky** variant, for the static servers, that tries to always let the
+  same clients make requests to the same machines.
+- A quota-based **round-robin** variant, for the dynamic servers, that tries to
+  assign the request to a machine whose quota of requests is not expired yet.
+
+Both of these variants must be described in the
+`/etc/apache2/sites-available/001-reverse-proxy.conf` file in the running
+container.
+
+##### Round-robin balancer for a dynamic site
+
+The implementation is relatively straightforward : if you know the IPs of all
+of the sites, you can implement the following rule :
+
+```apacheconf
+# Round-robin load balancer, with no routing cookie.
+<Proxy balancer://dynamic-balancer>
+  BalancerMember http://172.17.0.3:3000
+  BalancerMember http://172.17.0.4:3000
+  ProxySet lbmethod=byrequests
+</Proxy>
+```
+
+The load balancing method is specified for the whole load balancer (in this
+case `byrequests`).
+
+##### Sticky balancer for a static site
+
+On top of giving the list of the IPs that the requests should be distributed
+to, some additional information is provided when it comes to how the requests
+should be distributed.
+
+```apacheconf
+# Sticky load balancer (as long as the topology does not change too often).
+Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+<Proxy balancer://static-balancer>
+  BalancerMember http://172.17.0.5:80 route=1
+  BalancerMember http://172.17.0.6:80 route=2
+  ProxySet stickysession=ROUTEID
+</Proxy>
+```
+
+Specifically, a dedicated cookie `ROUTEID` will be added when the route that is
+used by a certain client is changed. Whenever an ulterior request is made, the
+`stickysession=ROUTEID` line will make the reverse proxy try to match the value
+of the previously used route, and will direct this request to the server with
+a matching `route=` parameter.
 
 #### Detecting topology changes with [Serf](https://serf.io)
 #### Dynamic load balancing with [Serf](https://serf.io)
