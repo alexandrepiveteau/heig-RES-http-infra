@@ -28,6 +28,8 @@ Authors :
       * [Sticky balancer for a static site](#sticky-balancer-for-a-static-site)
     * [Detecting topology changes with Serf](#detecting-topology-changes-with-serf)
     * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
+      * [Writing the `001-reverse-proxy.conf` file](#writing-the-001-reverse-proxyconf-file)
+      * [Wrapping it up](#wrapping-it-up)
 
 <!-- vim-markdown-toc -->
 
@@ -625,3 +627,94 @@ This contains the IP addresses and protocol where serf is running, the status
 of the nodes, their roles, and their identifiers.
 
 #### Dynamic load balancing with [Serf](https://serf.io)
+
+Serf offers a way to automatically run a script whenever the topology changes.
+We use this mechanism to update the Apache configuration file for our reverse
+proxy dynamically. More specifically, using the following serf configuration on
+the reverse proxy :
+
+```json
+{
+  "tags": {
+    "role": "load-balancer"
+  },
+  "event_handlers": [
+    "cat | /usr/local/bin/update_topology"
+  ]
+}
+```
+
+The `update_topology` script is run whenever a topology change occurs :
+
+```bash
+#!/bin/bash
+transformed=$(serf members | php /var/apache2/templates/config-template-serf.php)
+
+echo "$transformed" > /etc/apache2/sites-available/001-reverse-proxy.conf
+service apache2 reload
+a2ensite 001-*
+```
+
+The script retrieves the `stdout` content of the `serf members` command, pipes
+it into a `php` script (a template of the load balancers configuration), and
+writes it in the `001-reverse-proxy.conf` file. The apache2 server is then
+**reloaded** and the site **re-enabled**.
+
+##### Writing the `001-reverse-proxy.conf` file
+
+We use PHP as a templating engine for the `001-reverse-proxy.conf` file. More
+specifically, since we pipe in the `serf members` input, we can filter the
+different members by role and availability to decide to include them or not in
+the reverse proxy configuration.
+
+The PHP template has some functions that map a member line to its IP adress,
+that map a member line to its agent role, and creates two variables
+`$static_ips` and `$dynamic_ips` that contain the list of all the **alive
+agents** with the right role. It's then easy to populate the `dynamic-balancer`
+and the `static-balancer` with the right IPs :
+
+```php
+# Round-robin load balancer, with no routing cookie.
+<Proxy balancer://dynamic-balancer>
+<?php
+foreach($dynamic_ips as $ip) {
+  echo "    BalancerMember http://";
+  echo $ip;
+  echo ":3000\n";
+}
+?>
+ProxySet lbmethod=byrequests
+</Proxy>
+```
+
+```php
+# Sticky load balancer (as long as the topology does not change too often).
+Header add Set-Cookie "ROUTEID=.%{BALANCER_WORKER_ROUTE}e; path=/" env=BALANCER_ROUTE_CHANGED
+<Proxy balancer://static-balancer>
+<?php
+$route = 1;
+foreach($static_ips as $ip) {
+  echo "    BalancerMember http://";
+  echo $ip;
+  echo ":80 route=";
+  echo $route;
+  echo "\n";
+  $route = $route + 1;
+}
+?>
+ProxySet stickysession=ROUTEID
+</Proxy>
+```
+
+> Route ids for the sticky load balancer are not stable over time, if the
+> topology changes. In our context, this is not a real problem, and if we
+> wanted an actually more elaborate solution, we might want to use a dedicated
+> tool to handle these problems for us.
+
+##### Wrapping it up
+
+To let the containers connect to each other, they must know the IP address of
+at least one other container when launching their local `serf` instance. This
+information is passed as an environment variable, `$EXISTING_NODE`, when the
+containers are started. The different `./docker_up.sh`, `./new_static.sh`
+and `./new_dynamic.sh` automate this manual setup.
