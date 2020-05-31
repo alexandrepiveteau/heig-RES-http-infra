@@ -346,6 +346,70 @@ can't directly ask Docker to perform multiple `CMD`.
 
 #### Serving our Node app
 
+Express simplifies the handling of HTTP requests quite a bit : we simply have
+to tell it that we're listening on port 3000, and it will manage an HTTP server
+for us :
+
+```js
+var Express = require('express');
+var app = new Express();
+app.listen(3000, function() {
+  console.log('Listening on the port 3000');
+});
+```
+
+We then specify the route for which we want to provide some answers :
+
+```js
+app.get('/', function(req, res) {
+  console.log("Received a request !");
+  res.send(generateTransactions());
+});
+```
+
+> Logging that we receive requests is optional, but makes it easier to check
+> whether a round-robin or a sticky policy is applied when we use a cluster of
+> dynamic notes.
+
+Finally, we can use `chance` to generate random transactions :
+
+```js
+var Chance = require('chance');
+var chance = new Chance();
+function generateTransactions() {
+  var numberOfTransactions = chance.integer({min: 15, max: 25});
+  var transactions = [];
+  for (var i = 0; i < numberOfTransactions; i++) {
+    var currency = chance.currency().code;
+    var time = chance.date();
+    var amount = chance.integer({min: 100, max: 10000}) / 100.0;
+    var title = chance.sentence();
+    transactions.push({
+      currency : currency,
+      time : time,
+      amount : amount,
+      title : title
+    });
+  }
+  return transactions;
+}
+```
+
+The returned objects will be of the form :
+
+
+```json
+{
+  "currency"  : "LTL",
+  "time"      : "2072-08-07T16:53:12.504Z",
+  "amount"    : 84.16,
+  "title"     : "Lorem ipsum"
+}
+```
+
+Please note that we will not consume all of this data in the Elm component of
+the static page.
+
 ### Dynamic Reverse Proxy
 
 #### Forwarding routes
