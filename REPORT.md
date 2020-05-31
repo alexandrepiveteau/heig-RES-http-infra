@@ -209,7 +209,7 @@ update message existing =
 ```
 
 This works with the `subscriptions`, which describe, in a **managed effect**,
-that we want tto request the list of transactions **every 5 seconds** :
+that we want to request the list of transactions **every 5 seconds** :
 
 
 ```elm
