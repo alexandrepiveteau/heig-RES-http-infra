@@ -1,4 +1,12 @@
 # Report
+
+Authors :
+
+- Alexandre **Piveteau**
+- Guy-Laurent **Subri**
+
+## Table of contents
+
 <!-- vim-markdown-toc GFM -->
 
 * [Extra tooling used for the lab](#extra-tooling-used-for-the-lab)
@@ -18,11 +26,6 @@
     * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
 
 <!-- vim-markdown-toc -->
-
-Authors :
-
-- Alexandre **Piveteau**
-- Guy-Laurent **Subri**
 
 ## Extra tooling used for the lab
 
