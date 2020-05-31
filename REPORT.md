@@ -412,6 +412,26 @@ the static page.
 
 ### Dynamic Reverse Proxy
 
+To combine our static and dynamic servers, we use a **dynamic reverse proxy**
+with dynamic load balancing. The usage of a reverse proxy is necessary because
+of the [**same origin policy**](https://en.wikipedia.org/wiki/Same-origin_policy)
+that is applied to our infrastructure : the static Javascript served from the
+static servers may only make requests to the same host, with the same port
+number.
+
+> We could also use a more advanced CORS policy instead, but this goes out of
+> the scope of this lab.
+
+The reverse proxy creates two load balancers :
+
+- A **sticky** load balancer for the static content, which uses HTTP Cookies
+  as a way to remember which route was used.
+- A **round-robin** load balancer for the dynamic content, which does not need
+  and alterations of the performed requests.
+
+The reverse proxy uses the same `php:apache` base image as before, with
+the [serf](https://serf.io) tool configured to listen for topology changes.
+
 #### Forwarding routes
 #### Detecting topology changes
 #### Dynamic load balancing with [Serf](https://serf.io)
