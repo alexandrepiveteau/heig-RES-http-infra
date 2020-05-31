@@ -59,6 +59,30 @@ Before running any of the four last commands, you must have started the named
 
 ### Static HTTP Server
 
+Our static HTTP server is based on the `php:apache` image presented in the
+webcasts. It uses a Docker multi-stage build, to perform the following steps :
+
+1. Installing NPM and our build dependencies.
+
+```docker
+# Build the elm app. We first install the npm modules, to profit from Docker caching.
+FROM node:14 AS build
+WORKDIR /code
+COPY package.json .
+COPY package-lock.json .
+RUN npm install
+```
+
+2. Compiling our Elm program into an index.js file.
+```docker
+COPY . .
+RUN npm run build
+RUN cp ./index.js /code/static
+```
+
+3. Copying the `index.js` and HTML + CSS content into the `php:apache` image
+   to create our own image.
+
 #### Building our static website
 #### Serving static content
 #### AJAX with [Elm](https://elm-lang.org)
