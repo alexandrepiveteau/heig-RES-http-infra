@@ -1,4 +1,23 @@
 # Report
+<!-- vim-markdown-toc GFM -->
+
+* [Extra tooling used for the lab](#extra-tooling-used-for-the-lab)
+* [Details of our configuration](#details-of-our-configuration)
+  * [Static HTTP Server](#static-http-server)
+    * [Building our static website](#building-our-static-website)
+    * [Serving static content](#serving-static-content)
+    * [AJAX with Elm](#ajax-with-elm)
+      * [Integration in HTML content](#integration-in-html-content)
+    * [AJAX in Elm](#ajax-in-elm)
+  * [Dynamic HTTP Server](#dynamic-http-server)
+    * [Building our Node app](#building-our-node-app)
+    * [Serving our Node app](#serving-our-node-app)
+  * [Dynamic Reverse Proxy](#dynamic-reverse-proxy)
+    * [Forwarding routes](#forwarding-routes)
+    * [Detecting topology changes](#detecting-topology-changes)
+    * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
+
+<!-- vim-markdown-toc -->
 
 Authors :
 
