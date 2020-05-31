@@ -486,7 +486,7 @@ COPY conf-serf/ /etc/serf
 3. Enable different Apache modules that we need for our configuration. More
    specifically :
 
-   * We use some helper modules,
+* We use some helper modules,
 
 ```Dockerfile
 # Helper modules.
