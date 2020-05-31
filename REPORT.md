@@ -22,7 +22,9 @@ Authors :
     * [Serving our Node app](#serving-our-node-app)
   * [Dynamic Reverse Proxy](#dynamic-reverse-proxy)
     * [Forwarding routes](#forwarding-routes)
-    * [Detecting topology changes](#detecting-topology-changes)
+    * [Building the reverse proxy](#building-the-reverse-proxy)
+    * [Load balancing with and without sticky sessions](#load-balancing-with-and-without-sticky-sessions)
+    * [Detecting topology changes with Serf](#detecting-topology-changes-with-serf)
     * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
 
 <!-- vim-markdown-toc -->
@@ -433,5 +435,91 @@ The reverse proxy uses the same `php:apache` base image as before, with
 the [serf](https://serf.io) tool configured to listen for topology changes.
 
 #### Forwarding routes
-#### Detecting topology changes
+
+Requests are proxied to our two load balancers depending on whether their
+route is matched by the api (`/api/transactions`) or by the static server
+(everything else).
+
+1. The requests for the `/api/transactions` are proxied first :
+
+```apacheconf
+ProxyPass '/api/transactions' 'balancer://dynamic-balancer'
+ProxyPassReverse '/api/transactions' 'balancer://dynamic-balancer'
+```
+
+2. Followed by the more general requests to the static servers :
+
+```apacheconf
+ProxyPass '/' 'balancer://static-balancer/'
+ProxyPassReverse '/' 'balancer://static-balancer/'
+```
+
+The two load balancers that the requests are proxied have the names
+`dynamic-balancer` and `static-balancer`.
+
+#### Building the reverse proxy
+
+We still use the `php:apache` image in our `Dockerfile`. The build script
+performs the following steps :
+
+1. Install `vim` and `serf`.
+
+```Dockerfile
+FROM php:7.2-apache
+
+RUN apt-get update && apt-get install -y vim serf
+```
+
+2. Copy the various files that we need (init scripts and topology update
+   scripts). We'll cover those later.
+
+```Dockerfile
+COPY apache2-foreground /usr/local/bin
+COPY update_topology /usr/local/bin
+
+COPY templates /var/apache2/templates
+
+COPY conf-apache2/ /etc/apache2
+COPY conf-serf/ /etc/serf
+```
+
+3. Enable different Apache modules that we need for our configuration. More
+   specifically :
+
+   * We use some helper modules,
+
+```Dockerfile
+# Helper modules.
+RUN a2enmod status rewrite
+```
+
+  * We use some standard modules for proxying (as described in the webcasts),
+
+```Dockerfile
+# Proxy modules.
+RUN a2enmod proxy proxy_http
+```
+
+  * And we enable some modules required for load balancing. `headers` lets us
+    add some new HTTP headers (in particular a `Set-Cookie` header),
+    `proxy-balancer` enables load balancers for a proxy, and
+    `lmethod_byrequests` lets us use a load balancing method that's accounting
+    for the number of requests sent to each server.
+
+```Dockerfile
+# Load balancing modules.
+RUN a2enmod headers proxy_balancer lbmethod_byrequests
+```
+
+4. Finally, we enable a default site that performs nothing for queries to a
+   host different than `labo.res.ch`.
+
+```Dockerfile
+# Enable the default site.
+RUN a2ensite 000-*
+```
+
+#### Load balancing with and without sticky sessions
+
+#### Detecting topology changes with [Serf](https://serf.io)
 #### Dynamic load balancing with [Serf](https://serf.io)
