@@ -745,4 +745,4 @@ and `./new_dynamic.sh` automate this manual setup.
 ### Docker management
 
 To launch the docker management ui, run the `management.sh` script. It will launch a
-container with (portainer)[https://www.portainer.io/].
+container with [portainer](https://www.portainer.io/).
