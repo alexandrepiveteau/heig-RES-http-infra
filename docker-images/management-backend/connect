@@ -1,0 +1,3 @@
+#!/bin/bash
+serf agent -config-file=/etc/serf/config -protocol=4 -join=$EXISTING_NODE &
+node index.js

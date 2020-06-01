@@ -1,0 +1,14 @@
+{
+  "name": "management-backend",
+  "version": "0.1.0",
+  "description": "Lab exercice",
+  "main": "index.js",
+  "author": "Alexandre Piveteau, Guy-Laurent Subri",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
