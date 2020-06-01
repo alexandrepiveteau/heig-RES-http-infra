@@ -5,7 +5,8 @@ Authors :
 - Alexandre **Piveteau**
 - Guy-Laurent **Subri**
 
-## Table of contents
+# Table of Contents
+
 
 <!-- vim-markdown-toc GFM -->
 
@@ -30,6 +31,7 @@ Authors :
     * [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
       * [Writing the `001-reverse-proxy.conf` file](#writing-the-001-reverse-proxyconf-file)
       * [Wrapping it up](#wrapping-it-up)
+  * [Docker management](#docker-management)
 
 <!-- vim-markdown-toc -->
 
@@ -718,3 +720,8 @@ at least one other container when launching their local `serf` instance. This
 information is passed as an environment variable, `$EXISTING_NODE`, when the
 containers are started. The different `./docker_up.sh`, `./new_static.sh`
 and `./new_dynamic.sh` automate this manual setup.
+
+### Docker management
+
+To launch the docker management ui, run the `management.sh` script. It will launch a
+container with [portainer](https://www.portainer.io/).
