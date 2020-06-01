@@ -5,9 +5,32 @@ Authors :
 - Alexandre **Piveteau**
 - Guy-Laurent **Subri**
 
-## Table of contents
+# Table of Contents
 
-<!-- vim-markdown-toc GFM -->
+- [Report](#report)
+- [Table of Contents](#table-of-contents)
+    - [Extra tooling used for the lab](#extra-tooling-used-for-the-lab)
+    - [Details of our configuration](#details-of-our-configuration)
+        - [Static HTTP Server](#static-http-server)
+            - [Building our static website](#building-our-static-website)
+            - [Serving static content](#serving-static-content)
+            - [AJAX with Elm](#ajax-with-elm)
+                - [Integration in HTML content](#integration-in-html-content)
+                - [AJAX in Elm](#ajax-in-elm)
+        - [Dynamic HTTP Server](#dynamic-http-server)
+            - [Building our Node app](#building-our-node-app)
+            - [Serving our Node app](#serving-our-node-app)
+        - [Dynamic Reverse Proxy](#dynamic-reverse-proxy)
+            - [Forwarding routes](#forwarding-routes)
+            - [Building the reverse proxy](#building-the-reverse-proxy)
+            - [Load balancing with and without sticky sessions](#load-balancing-with-and-without-sticky-sessions)
+                - [Round-robin balancer for a dynamic site](#round-robin-balancer-for-a-dynamic-site)
+                - [Sticky balancer for a static site](#sticky-balancer-for-a-static-site)
+            - [Detecting topology changes with Serf](#detecting-topology-changes-with-serf)
+            - [Dynamic load balancing with Serf](#dynamic-load-balancing-with-serf)
+                - [Writing the `001-reverse-proxy.conf` file](#writing-the-001-reverse-proxyconf-file)
+                - [Wrapping it up](#wrapping-it-up)
+        - [Docker management](#docker-management)
 
 * [Extra tooling used for the lab](#extra-tooling-used-for-the-lab)
 * [Details of our configuration](#details-of-our-configuration)
@@ -718,3 +741,8 @@ at least one other container when launching their local `serf` instance. This
 information is passed as an environment variable, `$EXISTING_NODE`, when the
 containers are started. The different `./docker_up.sh`, `./new_static.sh`
 and `./new_dynamic.sh` automate this manual setup.
+
+### Docker management
+
+To launch the docker management ui, run the `management.sh` script. It will launch a
+container with (portainer)[https://www.portainer.io/].
