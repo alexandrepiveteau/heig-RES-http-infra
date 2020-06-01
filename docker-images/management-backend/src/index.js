@@ -1,3 +1,4 @@
+var ip      = require('ip');
 var Express = require('express');
 var Docker  = require('dockerode');
 var fs      = require('fs');
@@ -18,13 +19,52 @@ app.get('/', function(req, res) {
 });
 
 app.get('/all', function(req, res) {
-    docker.listContainers({all: true}, function(err, containers) {
+    docker.listContainers({all: false}, function(err, containers) {
+        var result = [];
         containers.forEach(function (containerInfo) {
-            console.log("Container info id: " + containerInfo.Id);
+            let data = {
+              identifier : containerInfo.Id,
+              type : "static"
+            };
+            if (containerInfo.Image == "res/apache_php") {
+              data.type = "static";
+              result.push(data);
+            } else if (containerInfo.Image == "res/express_myapp") {
+              data.type = "dynamic";
+              result.push(data);
+            }
         });
-        console.log('ALL: ' + containers.length);
+        res.send(result);
     });
-    res.send({});
+});
+
+app.delete('/container/:id', function(req, res) {
+  docker.getContainer(req.params.id).kill();
+  res.send({});
+});
+
+app.post('/container/:type', function(req, res) {
+  if (req.params.type == "static") {
+    docker.createContainer({
+      Image: 'res/apache_php',
+      Env: [
+        'EXISTING_NODE=' + ip.address()
+      ]
+    }).then(function(container) {
+      container.start();
+      res.send({});
+    });
+  } else if (req.params.type == "dynamic") {
+    docker.createContainer({
+      Image: 'res/express_myapp',
+      Env: [
+        'EXISTING_NODE=' + ip.address()
+      ]
+    }).then(function(container) {
+      container.start();
+      res.send({});
+    });
+  }
 });
 
 app.listen(3000, function() {

@@ -3,6 +3,7 @@ module Main exposing (main)
 import Api
 import Browser
 import Html exposing (Html)
+import Html.Events as Event
 import Task
 import Time
 
@@ -27,6 +28,8 @@ init =
 type Message
     = GotContainers (List Api.Container)
     | RequestContainers
+    | RequestNew Api.ContainerType
+    | RequestKill String
 
 
 update : Message -> Model -> ( Model, Cmd Message )
@@ -37,6 +40,12 @@ update message existing =
 
         RequestContainers ->
             ( existing, Cmd.map GotContainers Api.get )
+
+        RequestNew type_ ->
+            ( existing, Api.create RequestContainers type_ )
+
+        RequestKill identifier ->
+            ( existing, Api.delete RequestContainers identifier )
 
 
 subscriptions : Model -> Sub Message
@@ -51,19 +60,28 @@ subscriptions _ =
 view : Model -> Html Message
 view model =
     Html.div []
-        (List.map card model)
+        [ Html.div [] (List.map card model)
+        , Html.button [ Event.onClick <| RequestNew Api.Static ] [ Html.text "New static" ]
+        , Html.button [ Event.onClick <| RequestNew Api.Dynamic ] [ Html.text "New dynamic" ]
+        ]
 
 
 card : Api.Container -> Html Message
 card container =
+    let
+        typeToString : Api.ContainerType -> String
+        typeToString type_ =
+            case type_ of
+                Api.Static ->
+                    "STATIC : "
+
+                Api.Dynamic ->
+                    "DYNAMIC : "
+    in
     Html.div []
-        [ Html.div []
-            [ Html.span [] [ Html.text "we like" ]
-            , Html.h2 [] [ Html.text "Elm" ]
-            ]
-        , Html.div []
-            [ Html.h3 [] [ Html.text container.name ]
-            ]
+        [ Html.em [] [ Html.text <| typeToString container.type_ ]
+        , Html.text container.name
+        , Html.button [ Event.onClick <| RequestKill container.name ] [ Html.text "Kill" ]
         ]
 
 

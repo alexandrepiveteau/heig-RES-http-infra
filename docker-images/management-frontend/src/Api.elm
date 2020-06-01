@@ -71,7 +71,7 @@ delete result name =
     Http.request
         { method = "DELETE"
         , headers = []
-        , url = "/management/api/delete/" ++ name
+        , url = "/management/api/container/" ++ name
         , body = Http.emptyBody
         , expect =
             Http.expectWhatever
@@ -86,7 +86,7 @@ delete result name =
 create : msg -> ContainerType -> Cmd msg
 create result type_ =
     Http.post
-        { url = "/management/" ++ encodeContainerType type_
+        { url = "/management/api/container/" ++ encodeContainerType type_
         , body = Http.emptyBody
         , expect =
             Http.expectWhatever

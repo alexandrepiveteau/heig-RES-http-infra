@@ -1,5 +1,3 @@
-#!/bin/sh
-docker run \
-    -p 9000:9000 \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    portainer/portainer &
+#!/bin/bash
+./new_management_backend.sh
+./new_management_frontend.sh

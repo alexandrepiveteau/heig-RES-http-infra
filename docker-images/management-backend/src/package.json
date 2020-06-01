@@ -7,7 +7,8 @@
   "license": "MIT",
   "dependencies": {
     "dockerode": "^3.2.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "ip": "^1.1.5"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
