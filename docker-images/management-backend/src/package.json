@@ -6,6 +6,7 @@
   "author": "Alexandre Piveteau, Guy-Laurent Subri",
   "license": "MIT",
   "dependencies": {
+    "dockerode": "^3.2.0",
     "express": "^4.17.1"
   },
   "scripts": {
