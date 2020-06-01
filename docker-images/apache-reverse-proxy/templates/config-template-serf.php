@@ -37,15 +37,29 @@
     return serf_agent_to_role($line) == "dynamic";
   }
 
+  # A predicate that indicates if this line represents a management backend.
+  function management_backend_member($line) {
+    return serf_agent_to_role($line) == "management-backend";
+  }
+
+  # A predicate that indicates if this line represents a management frontend.
+  function management_frontend_member($line) {
+    return serf_agent_to_role($line) == "management-frontend";
+  }
+
   # Read the standard input.
   $input = stream_get_contents(STDIN);
   $lines = explode("\n", $input);
 
   # Sort by member type.
+  $management_backend_members = array_filter($lines, "management_backend_member");
+  $management_frontend_members = array_filter($lines, "management_frontend_member");
   $static_members = array_filter($lines, "static_member");
   $dynamic_members = array_filter($lines, "dynamic_member");
 
   # Format members to only get their IP adresses.
+  $management_backend_ips = array_map("serf_agent_to_ip", $management_backend_members);
+  $management_frontend_ips = array_map("serf_agent_to_ip", $management_frontend_members);
   $static_ips = array_map("serf_agent_to_ip", $static_members); 
   $dynamic_ips = array_map("serf_agent_to_ip", $dynamic_members);
 ?>
@@ -82,6 +96,30 @@ foreach($static_ips as $ip) {
 ?>
     ProxySet stickysession=ROUTEID
   </Proxy>
+
+<?php
+if (count($management_backend_ips) != 0) {
+  $data = reset($management_backend_ips);
+  echo "  ProxyPass '/management/api/' http://";
+  echo $data;
+  echo ":3000/\n";
+  echo "  ProxyPassReverse '/management/api/' http://";
+  echo $data;
+  echo ":3000/\n";
+}
+?>
+
+<?php
+if (count($management_frontend_ips) != 0) {
+  $data = reset($management_frontend_ips);
+  echo "  ProxyPass '/management/' http://";
+  echo $data;
+  echo ":80/\n";
+  echo "  ProxyPassReverse '/management/' http://";
+  echo $data;
+  echo ":80/\n";
+}
+?>
 
   ProxyPass '/api/transactions' 'balancer://dynamic-balancer'
   ProxyPassReverse '/api/transactions' 'balancer://dynamic-balancer'
